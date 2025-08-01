@@ -16,8 +16,30 @@
       {
         "command": "focus-test-js.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "focus-test-js.focusCurrentTest",
+        "title": "Toggle Focus on Current Test"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Focus Test JS",
+      "properties": {
+        "focus-test-js.testFocusMethod": {
+          "type": "string",
+          "default": ".only",
+          "enum": [
+            ".only",
+            "f"
+          ],
+          "enumDescriptions": [
+            "Append .only to test function names (e.g., test.only)",
+            "Prepend f to test function names (e.g., ftest)"
+          ],
+          "description": "Method to use for focusing tests"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
