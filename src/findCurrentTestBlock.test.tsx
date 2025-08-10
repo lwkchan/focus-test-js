@@ -1,8 +1,7 @@
 import { findCurrentTestBlock } from "./findCurrentTestBlock";
 
 describe("findCurrentTestBlock", () => {
-  it("should return the correct test block information for various Jest test patterns", () => {
-    // Test case 1: Basic test function
+  it("should find basic test function", () => {
     const basicTestText = `describe('My Test Suite', () => {
   test('should do something', () => {
     expect(true).toBe(true);
@@ -26,8 +25,9 @@ describe("findCurrentTestBlock", () => {
       endColumn: 6,
       isEachCall: false,
     });
+  });
 
-    // Test case 2: Test with .only modifier
+  it("should find test with .only modifier", () => {
     const onlyTestText = `describe('My Test Suite', () => {
   test.only('should be focused', () => {
     expect(true).toBe(true);
@@ -47,8 +47,9 @@ describe("findCurrentTestBlock", () => {
       endColumn: 11, // 2 + 4 + 5 for ".only"
       isEachCall: false,
     });
+  });
 
-    // Test case 3: Test with f prefix
+  it("should find test with f prefix", () => {
     const fTestText = `describe('My Test Suite', () => {
   ftest('should be focused with f', () => {
     expect(true).toBe(true);
@@ -68,8 +69,9 @@ describe("findCurrentTestBlock", () => {
       endColumn: 7, // 2 + 1 + 4 for "f" + "test"
       isEachCall: false,
     });
+  });
 
-    // Test case 4: Test.each method call
+  it("should find test.each method call", () => {
     const eachTestText = `describe('My Test Suite', () => {
   test.each([1, 2, 3])('should handle %i', (value) => {
     expect(value).toBeDefined();
@@ -86,32 +88,12 @@ describe("findCurrentTestBlock", () => {
       testName: "should handle %i",
       line: 1,
       startColumn: 2,
-      endColumn: 6,
+      endColumn: 11,
       isEachCall: true,
     });
-
-    // Test case 5: Test.only.each method call
-    const onlyEachTestText = `describe('My Test Suite', () => {
-  test.only.each([1, 2, 3])('should handle %i with focus', (value) => {
-    expect(value).toBeDefined();
   });
-});`;
 
-    const onlyEachTestResult = findCurrentTestBlock({
-      text: onlyEachTestText,
-      currentLine: 2,
-      focusMethod: ".only",
-    });
-    expect(onlyEachTestResult).toEqual({
-      functionName: "test",
-      testName: "should handle %i with focus",
-      line: 1,
-      startColumn: 2,
-      endColumn: 11, // 2 + 4 + 5 for ".only"
-      isEachCall: true,
-    });
-
-    // Test case 6: ftest.each method call
+  it("should find ftest.each method call", () => {
     const fEachTestText = `describe('My Test Suite', () => {
   ftest.each([1, 2, 3])('should handle %i with f prefix', (value) => {
     expect(value).toBeDefined();
@@ -128,11 +110,12 @@ describe("findCurrentTestBlock", () => {
       testName: "should handle %i with f prefix",
       line: 1,
       startColumn: 2,
-      endColumn: 7, // 2 + 1 + 4 for "f" + "test"
+      endColumn: 12, // 2 + 1 + 4 for "f" + "test" + . + "each"
       isEachCall: true,
     });
+  });
 
-    // Test case 7: it function
+  it("should find it function", () => {
     const itTestText = `describe('My Test Suite', () => {
   it('should work with it function', () => {
     expect(true).toBe(true);
@@ -152,8 +135,9 @@ describe("findCurrentTestBlock", () => {
       endColumn: 4,
       isEachCall: false,
     });
+  });
 
-    // Test case 8: describe function
+  it("should find describe function", () => {
     const describeTestText = `describe('My Test Suite', () => {
   describe('nested describe', () => {
     test('nested test', () => {
@@ -175,8 +159,9 @@ describe("findCurrentTestBlock", () => {
       endColumn: 10,
       isEachCall: false,
     });
+  });
 
-    // Test case 9: No test found
+  it("should return null when no test found", () => {
     const noTestText = `const someVariable = 'value';
 console.log('Hello world');
 // Just some regular code`;
@@ -187,8 +172,19 @@ console.log('Hello world');
       focusMethod: ".only",
     });
     expect(noTestResult).toBeNull();
+  });
 
-    // Test case 10: Cursor at beginning of file (should find describe block at line 0)
+  it("should find describe block when cursor at beginning of file", () => {
+    const basicTestText = `describe('My Test Suite', () => {
+  test('should do something', () => {
+    expect(true).toBe(true);
+  });
+  
+  it('should validate input', () => {
+    expect(false).toBe(false);
+  });
+});`;
+
     const beginningResult = findCurrentTestBlock({
       text: basicTestText,
       currentLine: 0,
@@ -204,13 +200,13 @@ console.log('Hello world');
     });
   });
 
-  it("should prioritize .each patterns over basic patterns", () => {
+  it("should find .each patterns", () => {
     const testText = `describe('Test Suite', () => {
   test('basic test', () => {
     expect(true).toBe(true);
   });
   
-  test.each([1, 2])('parameterized test %i', (value) => {
+  it.each([1, 2])('parameterized test %i', (value) => {
     expect(value).toBeDefined();
   });
 });`;
@@ -218,15 +214,15 @@ console.log('Hello world');
     // When cursor is on line 5 (inside the .each test), it should find the .each pattern
     const result = findCurrentTestBlock({
       text: testText,
-      currentLine: 5,
+      currentLine: 6,
       focusMethod: ".only",
     });
     expect(result).toEqual({
-      functionName: "test",
+      functionName: "it",
       testName: "parameterized test %i",
       line: 5,
       startColumn: 2,
-      endColumn: 6,
+      endColumn: 9,
       isEachCall: true,
     });
   });

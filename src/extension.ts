@@ -28,7 +28,11 @@ export function activate(context: vscode.ExtensionContext) {
     const focusMethod = config.get<FocusMethod>("testFocusMethod", ".only");
 
     // Find the nearest Jest test function before the cursor
-    const testFunctionMatch = findCurrentTestBlock(text, position.line, focusMethod);
+    const testFunctionMatch = findCurrentTestBlock({
+      text,
+      currentLine: position.line,
+      focusMethod,
+    });
 
     if (!testFunctionMatch) {
       vscode.window.showErrorMessage("No Jest test function found before cursor position");
